@@ -25,8 +25,11 @@ func buildDayDate(day: Int, month: Int, year: Int) -> Date {
     c.setValue(day, for: .day)
     c.setValue(month, for: .month)
     c.setValue(year, for: .year)
+    c.timeZone = TimeZone(abbreviation: "UTC")
 
-    return Calendar.current.date(from: c)!
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(abbreviation: "UTC")!
+    return calendar.date(from: c)!
 }
 
 func buildTimeDate(day: Int, month: Int, year: Int, hour: Int, min: Int, sec: Int) -> Date {
@@ -37,7 +40,10 @@ func buildTimeDate(day: Int, month: Int, year: Int, hour: Int, min: Int, sec: In
     c.setValue(hour, for: .hour)
     c.setValue(min, for: .minute)
     c.setValue(sec, for: .second)
+    c.timeZone = TimeZone(abbreviation: "UTC")
 
-    return Calendar.current.date(from: c)!
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(abbreviation: "UTC")!
+    return calendar.date(from: c)!
 }
 
