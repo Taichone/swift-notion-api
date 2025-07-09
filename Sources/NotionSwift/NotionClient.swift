@@ -7,7 +7,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public final class NotionClient: NotionClientType {
+public final class NotionClient: NotionClientType, @unchecked Sendable {
     private let accessKeyProvider: AccessKeyProvider
     let networkClient: NetworkClient
 

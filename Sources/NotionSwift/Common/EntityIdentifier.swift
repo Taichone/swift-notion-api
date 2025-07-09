@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct EntityIdentifier<Marker, T: Codable>: CustomStringConvertible {
+public struct EntityIdentifier<Marker, T: Codable & Sendable>: CustomStringConvertible, Sendable {
     public let rawValue: T
 
     public init(_ rawValue: T) {

@@ -4,14 +4,14 @@
 
 import Foundation
 
-public struct User {
-    public enum UserType {
+public struct User: Sendable {
+    public enum UserType: Sendable {
         case person(Person)
         case bot(Bot)
         case unknown
     }
 
-    public struct Person {
+    public struct Person: Sendable {
         public let email: String?
 
         public init(email: String?) {
@@ -19,7 +19,7 @@ public struct User {
         }
     }
 
-    public struct Bot {
+    public struct Bot: Sendable {
         public init() {}
     }
 

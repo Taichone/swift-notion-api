@@ -4,97 +4,81 @@
 
 import Foundation
 
-public protocol NotionClientType: AnyObject {
+public protocol NotionClientType: AnyObject, Sendable {
 
     // MARK: - block
 
     func blockChildren(
         blockId: Block.Identifier,
-        params: BaseQueryParams,
-        completed: @escaping (Result<ListResponse<ReadBlock>, NotionClientError>) -> Void
-    )
+        params: BaseQueryParams
+    ) async throws -> ListResponse<ReadBlock>
 
     func blockAppend(
         blockId: Block.Identifier,
-        children: [WriteBlock],
-        completed: @escaping (Result<ListResponse<ReadBlock>, NotionClientError>) -> Void
-    )
+        children: [WriteBlock]
+    ) async throws -> ListResponse<ReadBlock>
 
     func blockUpdate(
         blockId: Block.Identifier,
-        value: UpdateBlock,
-        completed: @escaping (Result<ReadBlock, NotionClientError>) -> Void
-    )
+        value: UpdateBlock
+    ) async throws -> ReadBlock
 
     func blockDelete(
-        blockId: Block.Identifier,
-        completed: @escaping (Result<ReadBlock, NotionClientError>) -> Void
-    )
+        blockId: Block.Identifier
+    ) async throws -> ReadBlock
 
     // MARK: - database
 
     func database(
-        databaseId: Database.Identifier,
-        completed: @escaping (Result<Database, NotionClientError>) -> Void
-    )
+        databaseId: Database.Identifier
+    ) async throws -> Database
     
     func databaseQuery(
         databaseId: Database.Identifier,
-        params: DatabaseQueryParams,
-        completed: @escaping (Result<ListResponse<Page>, NotionClientError>) -> Void
-    )
+        params: DatabaseQueryParams
+    ) async throws -> ListResponse<Page>
 
     func databaseCreate(
-        request: DatabaseCreateRequest,
-        completed: @escaping (Result<Database, NotionClientError>) -> Void
-    )
+        request: DatabaseCreateRequest
+    ) async throws -> Database
 
     func databaseUpdate(
         databaseId: Database.Identifier,
-        request: DatabaseUpdateRequest,
-        completed: @escaping (Result<Database, NotionClientError>) -> Void
-    )
+        request: DatabaseUpdateRequest
+    ) async throws -> Database
 
     // MARK: - page
 
     func page(
-        pageId: Page.Identifier,
-        completed: @escaping (Result<Page, NotionClientError>) -> Void
-    )
+        pageId: Page.Identifier
+    ) async throws -> Page
 
     func pageCreate(
-        request: PageCreateRequest,
-        completed: @escaping (Result<Page, NotionClientError>) -> Void
-    )
+        request: PageCreateRequest
+    ) async throws -> Page
 
     func pageUpdate(
         pageId: Page.Identifier,
-        request: PageUpdateRequest,
-        completed: @escaping (Result<Page, NotionClientError>) -> Void
-    )
+        request: PageUpdateRequest
+    ) async throws -> Page
 
     // MARK: - user
 
     func user(
-        userId: User.Identifier,
-        completed: @escaping (Result<User, NotionClientError>) -> Void
-    )
+        userId: User.Identifier
+    ) async throws -> User
 
     func usersList(
-        params: BaseQueryParams,
-        completed: @escaping (Result<ListResponse<User>, NotionClientError>) -> Void
-    )
+        params: BaseQueryParams
+    ) async throws -> ListResponse<User>
 
-    func usersMe(
-        completed: @escaping (Result<User, NotionClientError>) -> Void
-    )
+    func usersMe() async throws -> User
 
     // MARK: - search
     
     func search(
-        request: SearchRequest,
-        completed: @escaping (Result<SearchResponse, NotionClientError>) -> Void
-    )
+        request: SearchRequest
+    ) async throws -> SearchResponse
 }
 
 // MARK: - default arguments
@@ -102,28 +86,22 @@ public protocol NotionClientType: AnyObject {
 extension NotionClientType {
 
     public func blockChildren(
-        blockId: Block.Identifier,
-        completed: @escaping (Result<ListResponse<ReadBlock>, NotionClientError>) -> Void
-    ) {
-        self.blockChildren(blockId: blockId, params: .init(), completed: completed)
+        blockId: Block.Identifier
+    ) async throws -> ListResponse<ReadBlock> {
+        try await blockChildren(blockId: blockId, params: .init())
     }
 
     public func databaseQuery(
-        databaseId: Database.Identifier,
-        completed: @escaping (Result<ListResponse<Page>, NotionClientError>) -> Void
-    ) {
-        self.databaseQuery(databaseId: databaseId, params: .init(), completed: completed)
+        databaseId: Database.Identifier
+    ) async throws -> ListResponse<Page> {
+        try await databaseQuery(databaseId: databaseId, params: .init())
     }
 
-    public func usersList(
-        completed: @escaping (Result<ListResponse<User>, NotionClientError>) -> Void
-    ) {
-        self.usersList(params: .init(), completed: completed)
+    public func usersList() async throws -> ListResponse<User> {
+        try await usersList(params: .init())
     }
 
-    public func search(
-        completed: @escaping (Result<SearchResponse, NotionClientError>) -> Void
-    ) {
-        self.search(request: .init(), completed: completed)
+    public func search() async throws -> SearchResponse {
+        try await search(request: .init())
     }
 }

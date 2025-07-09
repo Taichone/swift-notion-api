@@ -22,42 +22,37 @@ public enum Network {
     }
 }
 
-public protocol NetworkClient: AnyObject {
-    func get<R: Decodable>(
+public protocol NetworkClient: AnyObject, Sendable {
+    func get<R: Decodable & Sendable>(
         _ url: URL,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    )
+        headers: Network.HTTPHeaders
+    ) async throws -> R
 
-    func post<T: Encodable, R: Decodable>(
+    func post<T: Encodable & Sendable, R: Decodable & Sendable>(
         _ url: URL,
         body: T,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    )
+        headers: Network.HTTPHeaders
+    ) async throws -> R
 
-    func patch<T: Encodable, R: Decodable>(
+    func patch<T: Encodable & Sendable, R: Decodable & Sendable>(
         _ url: URL,
         body: T,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    )
+        headers: Network.HTTPHeaders
+    ) async throws -> R
 
-    func delete<T: Encodable, R: Decodable>(
+    func delete<T: Encodable & Sendable, R: Decodable & Sendable>(
         _ url: URL,
         body: T,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    )
+        headers: Network.HTTPHeaders
+    ) async throws -> R
 
-    func delete<R: Decodable>(
+    func delete<R: Decodable & Sendable>(
         _ url: URL,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    )
+        headers: Network.HTTPHeaders
+    ) async throws -> R
 }
 
-public class DefaultNetworkClient: NetworkClient {
+public final class DefaultNetworkClient: NetworkClient, @unchecked Sendable {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private let session: URLSession
@@ -72,52 +67,46 @@ public class DefaultNetworkClient: NetworkClient {
         session = .init(configuration: sessionConfiguration)
     }
 
-    public func get<R: Decodable>(
+    public func get<R: Decodable & Sendable>(
         _ url: URL,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    ) {
-        
+        headers: Network.HTTPHeaders
+    ) async throws -> R {
         let request = buildRequest(method: .GET, url: url, headers: headers)
-        executeRequest(request: request, completed: completed)
+        return try await executeRequest(request: request)
     }
 
-    public func post<T: Encodable, R: Decodable>(
+    public func post<T: Encodable & Sendable, R: Decodable & Sendable>(
         _ url: URL,
         body: T,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    ) {
+        headers: Network.HTTPHeaders
+    ) async throws -> R {
         var request = buildRequest(method: .POST, url: url, headers: headers)
         let requestBody: Data
 
         do {
             requestBody = try encoder.encode(body)
         } catch {
-            completed(.failure(.bodyEncodingError(error)))
-            return
+            throw NotionClientError.bodyEncodingError(error)
         }
         Environment.log.trace("BODY:\n " + String(data: requestBody, encoding: .utf8)!)
         request.httpBody = requestBody
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        executeRequest(request: request, completed: completed)
+        return try await executeRequest(request: request)
     }
 
-    public func patch<T: Encodable, R: Decodable>(
+    public func patch<T: Encodable & Sendable, R: Decodable & Sendable>(
         _ url: URL,
         body: T,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    ) {
+        headers: Network.HTTPHeaders
+    ) async throws -> R {
         var request = buildRequest(method: .PATCH, url: url, headers: headers)
         let requestBody: Data
 
         do {
             requestBody = try encoder.encode(body)
         } catch {
-            completed(.failure(.bodyEncodingError(error)))
-            return
+            throw NotionClientError.bodyEncodingError(error)
         }
 
         Environment.log.trace("BODY:\n " + String(data: requestBody, encoding: .utf8)!)
@@ -125,33 +114,29 @@ public class DefaultNetworkClient: NetworkClient {
         request.httpBody = requestBody
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        executeRequest(request: request, completed: completed)
+        return try await executeRequest(request: request)
     }
 
-    public func delete<R: Decodable>(
+    public func delete<R: Decodable & Sendable>(
         _ url: URL,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    ) {
-        // swiftlint:disable:next syntactic_sugar
-        self.genericDelete(url, body: Optional<Int>.none, headers: headers, completed: completed)
+        headers: Network.HTTPHeaders
+    ) async throws -> R {
+        return try await genericDelete(url, body: Optional<Int>.none, headers: headers)
     }
 
-    public func delete<T: Encodable, R: Decodable>(
+    public func delete<T: Encodable & Sendable, R: Decodable & Sendable>(
         _ url: URL,
         body: T,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    ) {
-        self.genericDelete(url, body: body, headers: headers, completed: completed)
+        headers: Network.HTTPHeaders
+    ) async throws -> R {
+        return try await genericDelete(url, body: body, headers: headers)
     }
 
-    private func genericDelete<T: Encodable, R: Decodable>(
+    private func genericDelete<T: Encodable & Sendable, R: Decodable & Sendable>(
         _ url: URL,
         body: T?,
-        headers: Network.HTTPHeaders,
-        completed: @escaping (Result<R, NotionClientError>) -> Void
-    ) {
+        headers: Network.HTTPHeaders
+    ) async throws -> R {
         var request = buildRequest(method: .DELETE, url: url, headers: headers)
         if let body = body {
             let requestBody: Data
@@ -159,8 +144,7 @@ public class DefaultNetworkClient: NetworkClient {
             do {
                 requestBody = try encoder.encode(body)
             } catch {
-                completed(.failure(.bodyEncodingError(error)))
-                return
+                throw NotionClientError.bodyEncodingError(error)
             }
 
             Environment.log.trace("BODY:\n " + String(data: requestBody, encoding: .utf8)!)
@@ -169,7 +153,7 @@ public class DefaultNetworkClient: NetworkClient {
         }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        executeRequest(request: request, completed: completed)
+        return try await executeRequest(request: request)
     }
 
     private func buildRequest(
@@ -186,38 +170,32 @@ public class DefaultNetworkClient: NetworkClient {
         return request
     }
 
-    private func executeRequest<T: Decodable>(
-        request: URLRequest,
-        completed: @escaping (Result<T, NotionClientError>) -> Void
-    ) {
+    private func executeRequest<T: Decodable & Sendable>(
+        request: URLRequest
+    ) async throws -> T {
         Environment.log.debug("Request: \(request.httpMethod ?? "") \(request.url?.absoluteString ?? "")")
-        let task = session.dataTask(with: request) { data, response, error in
-            var completeResult: Result<T, NotionClientError>?
-
-            if let error = NetworkClientHelpers.extractError(data: data, response: response, error: error) {
-                completeResult = .failure(error)
-            } else if let data = data {
-                Environment.log.trace(String(data: data, encoding: .utf8) ?? "")
-                do {
-                    Environment.log.trace(String(data: data, encoding: .utf8) ?? "")
-                    let result = try self.decoder.decode(T.self, from: data)
-                    completeResult = .success(result)
-                } catch let decodingError as Swift.DecodingError {
-                    completeResult = .failure(.decodingError(decodingError))
-                } catch {
-                    completeResult = .failure(.genericError(error))
-                }
-            } else {
-                completeResult = .failure(.unsupportedResponseError)
+        
+        do {
+            let (data, response) = try await session.data(for: request)
+            
+            if let error = NetworkClientHelpers.extractError(data: data, response: response, error: nil) {
+                throw error
             }
-
-            DispatchQueue.main.async {
-                guard let completeResult = completeResult else {
-                    fatalError("Something is wrong, no result!")
-                }
-                completed(completeResult)
+            
+            Environment.log.trace(String(data: data, encoding: .utf8) ?? "")
+            
+            do {
+                let result = try decoder.decode(T.self, from: data)
+                return result
+            } catch let decodingError as Swift.DecodingError {
+                throw NotionClientError.decodingError(decodingError)
+            } catch {
+                throw NotionClientError.genericError(error)
             }
+        } catch let error as NotionClientError {
+            throw error
+        } catch {
+            throw NotionClientError.genericError(error)
         }
-        task.resume()
     }
 }

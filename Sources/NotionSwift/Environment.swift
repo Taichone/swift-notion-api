@@ -6,15 +6,46 @@ import Foundation
 
 typealias Environment = NotionSwiftEnvironment
 
-public struct NotionSwiftEnvironment {
-    static var log = Logger(handler: EmptyLogHandler(), level: .info)
+public struct NotionSwiftEnvironment: Sendable {
+    private static let lock = NSLock()
+    private static var _log = Logger(handler: EmptyLogHandler(), level: .info)
+    
+    static var log: Logger {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return _log
+        }
+        set {
+            lock.lock()
+            defer { lock.unlock() }
+            _log = newValue
+        }
+    }
+    
     public static var logHandler: LoggerHandler {
-        get { log.handler }
-        set { log.handler = newValue }
+        get { 
+            lock.lock()
+            defer { lock.unlock() }
+            return _log.handler 
+        }
+        set { 
+            lock.lock()
+            defer { lock.unlock() }
+            _log.handler = newValue 
+        }
     }
 
     public static var logLevel: LogLevel {
-        get { log.level }
-        set { log.level = newValue }
+        get { 
+            lock.lock()
+            defer { lock.unlock() }
+            return _log.level 
+        }
+        set { 
+            lock.lock()
+            defer { lock.unlock() }
+            _log.level = newValue 
+        }
     }
 }

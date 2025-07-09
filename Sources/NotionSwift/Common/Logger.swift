@@ -4,7 +4,7 @@
 
 import Foundation
 
-public enum LogLevel: String, CaseIterable {
+public enum LogLevel: String, CaseIterable, Sendable {
     case trace
     case debug
     case info
@@ -38,11 +38,11 @@ extension LogLevel: Comparable {
     }
 }
 
-public protocol LoggerHandler: AnyObject {
+public protocol LoggerHandler: AnyObject, Sendable {
     func log(level: LogLevel, message: String)
 }
 
-public final class Logger {
+public final class Logger: @unchecked Sendable {
     var handler: LoggerHandler
     var level: LogLevel
 
@@ -85,13 +85,13 @@ public final class Logger {
     }
 }
 
-public class EmptyLogHandler: LoggerHandler {
+public final class EmptyLogHandler: LoggerHandler, @unchecked Sendable {
     public init() {}
     
     public func log(level: LogLevel, message: String) {}
 }
 
-public class PrintLogHandler: LoggerHandler {
+public final class PrintLogHandler: LoggerHandler, @unchecked Sendable {
     public init() {}
 
     public func log(level: LogLevel, message: String) {

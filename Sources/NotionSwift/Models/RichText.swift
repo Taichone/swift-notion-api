@@ -4,8 +4,8 @@
 
 import Foundation
 
-public struct RichText {
-    public struct Annotations: Equatable {
+public struct RichText: Sendable {
+    public struct Annotations: Equatable, Sendable {
         public let bold: Bool
         public let italic: Bool
         public let strikethrough: Bool
@@ -64,7 +64,7 @@ public struct RichText {
     }
 }
 
-public enum RichTextType {
+public enum RichTextType: Sendable {
     case text(TextTypeValue)
     case mention(MentionTypeValue)
     case equation(EquationTypeValue)
@@ -72,7 +72,7 @@ public enum RichTextType {
 }
 
 extension RichTextType {
-    public struct TextTypeValue {
+    public struct TextTypeValue: Sendable {
         public let content: String
         public let link: NotionLink?
 
@@ -82,7 +82,7 @@ extension RichTextType {
         }
     }
 
-    public struct EquationTypeValue {
+    public struct EquationTypeValue: Sendable {
         public let expression: String
 
         public init(expression: String) {

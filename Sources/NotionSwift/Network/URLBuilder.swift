@@ -7,7 +7,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public class URLBuilder {
+public final class URLBuilder: Sendable {
     let base: URL
 
     init() {

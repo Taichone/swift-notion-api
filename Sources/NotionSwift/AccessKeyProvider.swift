@@ -4,11 +4,11 @@
 
 import Foundation
 
-public protocol AccessKeyProvider {
+public protocol AccessKeyProvider: Sendable {
     var accessKey: String? { get }
 }
 
-public struct StringAccessKeyProvider: AccessKeyProvider, ExpressibleByStringLiteral {
+public struct StringAccessKeyProvider: AccessKeyProvider, ExpressibleByStringLiteral, Sendable {
 
     public let accessKey: String?
 
