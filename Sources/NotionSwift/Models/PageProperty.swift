@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct PageProperty {
+public struct PageProperty: Sendable {
     public typealias Identifier = EntityIdentifier<PageProperty, String>
     public let id: Identifier
     public let type: PagePropertyType
@@ -15,7 +15,7 @@ public struct PageProperty {
     }
 }
 
-public struct WritePageProperty {
+public struct WritePageProperty: Sendable {
     public let type: PagePropertyType
     
     public init(type: PagePropertyType) {
@@ -23,7 +23,7 @@ public struct WritePageProperty {
     }
 }
 
-public enum PagePropertyType {
+public enum PagePropertyType: Sendable {
     case richText([RichText])
     case number(Decimal?)
     case select(SelectPropertyValue?)
@@ -49,7 +49,7 @@ public enum PagePropertyType {
 }
 
 extension PagePropertyType {
-    public struct SelectPropertyValue {
+    public struct SelectPropertyValue: Sendable {
         public let id: EntityIdentifier<SelectPropertyValue, String>?
         public let name: String?
         public let color: String?
@@ -65,7 +65,7 @@ extension PagePropertyType {
         }
     }
 
-    public struct MultiSelectPropertyValue {
+    public struct MultiSelectPropertyValue: Sendable {
         public let id: EntityIdentifier<MultiSelectPropertyValue, UUIDv4>?
         public let name: String?
         public let color: String?
@@ -81,8 +81,8 @@ extension PagePropertyType {
         }
     }
 
-    public struct FilesPropertyValue {
-        public enum FileLink {
+    public struct FilesPropertyValue: Sendable {
+        public enum FileLink: Sendable {
             case external(url: String)
             case file(url: String, expiryTime: Date)
             case unknown(typeName: String)
@@ -97,7 +97,7 @@ extension PagePropertyType {
         }
     }
 
-    public enum FormulaPropertyValue {
+    public enum FormulaPropertyValue: Sendable {
         case string(String?)
         case number(Decimal?)
         case boolean(Bool?)
@@ -105,14 +105,14 @@ extension PagePropertyType {
         case unknown
     }
 
-    public enum RollupPropertyValue {
+    public enum RollupPropertyValue: Sendable {
         case array([PagePropertyType])
         case number(Decimal?)
         case date(DateRange?)
         case unknown
     }
     
-    public struct StatusPropertyValue {
+    public struct StatusPropertyValue: Sendable {
         public let id: EntityIdentifier<StatusPropertyValue, UUIDv4>?
         public let name: String?
         public let color: String?
@@ -128,7 +128,7 @@ extension PagePropertyType {
         }
     }
     
-    public struct UniqueIDPropertyValue {
+    public struct UniqueIDPropertyValue: Sendable {
         public let number: Int
         public let prefix: String?
         

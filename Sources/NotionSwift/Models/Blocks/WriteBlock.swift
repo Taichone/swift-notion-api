@@ -5,7 +5,7 @@
 import Foundation
 
 /// Block object used for adding a new content
-public struct WriteBlock {
+public struct WriteBlock: Sendable {
     public let type: BlockType
 
     public init(type: BlockType) {

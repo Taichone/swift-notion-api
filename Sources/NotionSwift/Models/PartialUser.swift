@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct PartialUser {
+public struct PartialUser: Sendable {
     public let id: User.Identifier
     
     public init(id: User.Identifier) {

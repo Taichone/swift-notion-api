@@ -4,7 +4,7 @@
 
 import Foundation
 
-public final class DatabaseQueryParams: BaseQueryParams {
+public final class DatabaseQueryParams: BaseQueryParams, @unchecked Sendable {
     public let filter: DatabaseFilter?
     public let sorts: [DatabaseSort]?
 

@@ -4,13 +4,13 @@
 
 import Foundation
 
-public struct SearchRequest {
-    public struct Sort {
-        public enum TimestampValue: String {
+public struct SearchRequest: Sendable {
+    public struct Sort: Sendable {
+        public enum TimestampValue: String, Sendable {
             case lastEditedTime = "last_edited_time"
         }
 
-        public enum DirectionValue: String {
+        public enum DirectionValue: String, Sendable {
             case ascending
             case descending
         }
@@ -27,7 +27,7 @@ public struct SearchRequest {
         }
     }
 
-    public struct Filter {
+    public struct Filter: Sendable {
         public let value: String
         public let property: String
         public static let page = Filter(value: "page", property: "object")

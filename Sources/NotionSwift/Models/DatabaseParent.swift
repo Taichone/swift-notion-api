@@ -4,7 +4,7 @@
 
 import Foundation
 
-public enum DatabaseParent {
+public enum DatabaseParent: Sendable {
     case pageId(Page.Identifier)
     case workspace
     case unknown(typeName: String)

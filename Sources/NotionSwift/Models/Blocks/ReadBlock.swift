@@ -5,7 +5,7 @@
 import Foundation
 
 /// Block object from a server response
-public struct ReadBlock: CustomStringConvertible {
+public struct ReadBlock: CustomStringConvertible, Sendable {
     public let id: Block.Identifier
     public let createdTime: Date
     public let lastEditedTime: Date

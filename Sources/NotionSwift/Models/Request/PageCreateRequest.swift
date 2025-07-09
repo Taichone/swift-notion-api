@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct PageCreateRequest {
+public struct PageCreateRequest: Sendable {
     public let parent: PageParentType // A database parent or page parent
     public let properties: [Page.PropertyName: WritePageProperty]
     public let children: [WriteBlock]?

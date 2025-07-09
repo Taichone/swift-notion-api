@@ -4,7 +4,7 @@
 
 import Foundation
 
-open class BaseQueryParams: Encodable {
+open class BaseQueryParams: Encodable, @unchecked Sendable {
     public let startCursor: String?
     public let pageSize: Int32?
 

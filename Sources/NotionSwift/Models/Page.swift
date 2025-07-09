@@ -5,7 +5,7 @@
 import Foundation
 
 /// The Page object contains **the property values** of a single Notion page.
-public struct Page {
+public struct Page: Sendable {
     public typealias Identifier = EntityIdentifier<Page, UUIDv4>
     public typealias PropertyName = String
     public let id: Identifier

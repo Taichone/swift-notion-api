@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ListResponse<T> {
+public struct ListResponse<T: Sendable>: Sendable {
     public let results: [T]
     public let nextCursor: String?
     public let hasMore: Bool

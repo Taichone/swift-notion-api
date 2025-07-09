@@ -1,13 +1,16 @@
 //
-//  Created by Wojciech Chojnacki on 02/06/2021.
+//  File.swift
+//  
+//
+//  Created by Wojciech Chojnacki on 31/05/2021.
 //
 
 import Foundation
 
-public struct NotionLink {
+public struct NotionLink: Sendable {
     public let url: String?
 
-    public init(url: String?) {
+    public init(url: String? = nil) {
         self.url = url
     }
 }

@@ -2,7 +2,7 @@
 //  Created by Wojciech Chojnacki on 15/11/2021.
 //
 
-public struct DateRange {
+public struct DateRange: Sendable {
     public let start: DateValue
     public let end: DateValue?
 

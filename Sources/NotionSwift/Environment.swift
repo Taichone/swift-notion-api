@@ -8,7 +8,7 @@ typealias Environment = NotionSwiftEnvironment
 
 public struct NotionSwiftEnvironment: Sendable {
     private static let lock = NSLock()
-    private static var _log = Logger(handler: EmptyLogHandler(), level: .info)
+    private nonisolated(unsafe) static var _log = Logger(handler: EmptyLogHandler(), level: .info)
     
     static var log: Logger {
         get {

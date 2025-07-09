@@ -4,7 +4,7 @@
 
 import Foundation
 
-public enum FileFile {
+public enum FileFile: Sendable {
     case external(url: String)
     case file(url: String, expiryTime: Date)
     case unknown(typeName: String)
