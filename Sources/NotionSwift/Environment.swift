@@ -10,7 +10,7 @@ public struct NotionSwiftEnvironment: Sendable {
     private static let lock = NSLock()
     private nonisolated(unsafe) static var _log = Logger(handler: EmptyLogHandler(), level: .info)
     
-    static var log: Logger {
+    public static var log: Logger {
         get {
             lock.lock()
             defer { lock.unlock() }

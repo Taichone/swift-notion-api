@@ -20,14 +20,14 @@ let package = Package(
             name: "NotionSwift",
             dependencies: [],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency")
+                .swiftLanguageMode(.v6)
             ]
         ),
         .testTarget(
             name: "NotionSwiftTests",
             dependencies: ["NotionSwift"],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency")
+                .swiftLanguageMode(.v6)
             ]
         ),
     ]
