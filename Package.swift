@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "NotionSwift",
+    name: "swift-notion-api",
     platforms: [
         .macOS(.v15),
         .iOS(.v18),

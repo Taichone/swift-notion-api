@@ -22,8 +22,19 @@ For more details and documentation please check [Notion Developer Portal](https:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/chojnac/NotionSwift.git", from: "0.9.0")
+    .package(url: "https://github.com/Taichone/swift-notion-api.git", from: "0.9.0")
 ]
+```
+
+And in your target dependencies:
+
+```swift
+.target(
+    name: "YourTarget",
+    dependencies: [
+        .product(name: "NotionSwift", package: "swift-notion-api")
+    ]
+)
 ```
 
 ### CocoaPods
