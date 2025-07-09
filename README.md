@@ -3,87 +3,99 @@
 
 Unofficial [Notion](https://www.notion.so) SDK for iOS & macOS. 
 
-This is still work in progress version, the module interface might change.
+**Swift 6 Ready** - Full support for strict concurrency checking and async/await patterns.
 
 ## API Documentation
 
 This library is a client for the official Notion API. 
 For more details and documentation please check [Notion Developer Portal](https://developers.notion.com/)
 
+## Requirements
+
+- **Swift 6.0+**
+- **iOS 18.0+** / **macOS 15.0+**
+- Xcode 16.0+
+
 ## Installation
+
+### Swift Package Manager (Recommended)
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/chojnac/NotionSwift.git", from: "0.9.0")
+]
+```
 
 ### CocoaPods
 
 ```ruby
-pod 'NotionSwift', '0.9.0'
-```
-
-### Swift Package Manager
-
-```swift
-dependencies: [
-    .package(url: "https://github.com/chojnac/NotionSwift.git", .upToNextMajor(from: "0.9.0"))
-]
+pod 'NotionSwift', '~> 0.9.0'
 ```
 
 ## Usage
 
+All API methods now use **async/await** patterns for better concurrency support and cleaner code.
+
 Currently, this library supports only the "internal integration" authorization mode. For more information about authorization and 
-instruction how to obtain `NOTION_TOKEN` please check [Notion Offical Documentation](https://developers.notion.com/docs/authorization).
+instruction how to obtain `NOTION_TOKEN` please check [Notion Official Documentation](https://developers.notion.com/docs/authorization).
 
 **Important:** Integrations are granted access to resources (pages and databases) which users have shared with the integration. Resources that are not shared with the integration are not visible by API endpoints. 
 
 ### Creating a Notion client
 
 ```swift
-
 let notion = NotionClient(accessKeyProvider: StringAccessKeyProvider(accessKey: "{NOTION_TOKEN}"))
-
 ```
 
 ### Tweak network configuration
 
-To tweak things like network timeouts you can provide a custom `URLSessionConfiguration` to `NotionClient`  like below.
+To tweak things like network timeouts you can provide a custom `URLSessionConfiguration` to `NotionClient` like below.
 
 ```swift
-
 let sessionConfig = URLSessionConfiguration.default
 sessionConfig.timeoutIntervalForRequest = 15
-let notion = NotionClient(accessKeyProvider: StringAccessKeyProvider(accessKey: "{NOTION_TOKEN}"), sessionConfiguration: sessionConfig)
-
+let notion = NotionClient(
+    accessKeyProvider: StringAccessKeyProvider(accessKey: "{NOTION_TOKEN}"), 
+    sessionConfiguration: sessionConfig
+)
 ```
 
 If that's not enough for your needs, you can implement the `NetworkClient` protocol and provide your implementation to `NotionClient`.
 
 ### List all databases
 
-The `https://api.notion.com/v1/databases` is deprecated. To recommended way to list all databases is to use `https://api.notion.com/v1/search` endpoint. 
+The `https://api.notion.com/v1/databases` is deprecated. The recommended way to list all databases is to use `https://api.notion.com/v1/search` endpoint. 
 In theory, search allows filtering results by object type. However, currently, the only filter allowed is `object` which will filter by type of object (either `page` or `database`)
-To narrow search results,  use code snippet belove. 
+To narrow search results, use code snippet below. 
 
 ```swift
 // fetch available databases
-notion.search(request: .init(filter: .database)) { result in
-    let databases = result.map { objects in
-        objects.results.compactMap({ object -> Database? in
-            if case .database(let db) = object {
-                return db
-            }
-            return nil
-        })
+do {
+    let searchResult = try await notion.search(request: .init(filter: .database))
+    let databases = searchResult.results.compactMap { object -> Database? in
+        if case .database(let db) = object {
+            return db
+        }
+        return nil
     }
     print(databases)
+} catch {
+    print("Error fetching databases: \(error)")
 }
 ```
 
 ### Query a database
 
 In this example we will get all pages in the database. To narrow results use `params` argument.
+
 ```swift
 let databaseId = Database.Identifier("{DATABASE UUIDv4}")
 
-notion.databaseQuery(databaseId: databaseId) {
-    print($0)
+do {
+    let result = try await notion.databaseQuery(databaseId: databaseId)
+    print(result)
+} catch {
+    print("Error querying database: \(error)")
 }
 ```
 
@@ -92,8 +104,11 @@ notion.databaseQuery(databaseId: databaseId) {
 ```swift
 let databaseId = Database.Identifier("{DATABASE UUIDv4}")
 
-notion.database(databaseId: databaseId) {
-    print($0)
+do {
+    let database = try await notion.database(databaseId: databaseId)
+    print(database)
+} catch {
+    print("Error retrieving database: \(error)")
 }
 ```
 
@@ -114,8 +129,11 @@ let request = DatabaseCreateRequest(
     ]
 )
 
-notion.databaseCreate(request: request) {
-    print($0)
+do {
+    let database = try await notion.databaseCreate(request: request)
+    print(database)
+} catch {
+    print("Error creating database: \(error)")
 }
 ```
 
@@ -134,8 +152,11 @@ let request = DatabaseUpdateRequest(
     ]
 )
 
-notion.databaseUpdate(databaseId: id, request: request) {
-    print($0)
+do {
+    let database = try await notion.databaseUpdate(databaseId: id, request: request)
+    print(database)
+} catch {
+    print("Error updating database: \(error)")
 }
 ```
 
@@ -162,8 +183,11 @@ let request = PageCreateRequest(
     ]
 )
 
-notion.pageCreate(request: request) {
-    print($0)
+do {
+    let page = try await notion.pageCreate(request: request)
+    print(page)
+} catch {
+    print("Error creating page: \(error)")
 }
 ```
 
@@ -174,8 +198,11 @@ Retrieve page properties.
 ```swift
 let pageId = Page.Identifier("{PAGE UUIDv4}")
 
-notion.page(pageId: pageId) {
-    print($0)
+do {
+    let page = try await notion.page(pageId: pageId)
+    print(page)
+} catch {
+    print("Error retrieving page: \(error)")
 }
 ```
 
@@ -184,20 +211,19 @@ Page content (text for example) is represented as an array of blocks. The exampl
 ```swift
 let pageId = Page.Identifier("{PAGE UUIDv4}")
 
-notion.page(pageId: pageId) { [notion] in
-    print("---- Properties ----- ")
-    print($0)
-    switch $0 {
-    case .success(let page):
-        notion.blockChildren(blockId: page.id.toBlockIdentifier) {
-            print("---- Children ----- ")
-            print($0)
-        }
-    default:
-        break
-    }
+do {
+    print("---- Properties -----")
+    let page = try await notion.page(pageId: pageId)
+    print(page)
+    
+    print("---- Children -----")
+    let children = try await notion.blockChildren(blockId: page.id.toBlockIdentifier)
+    print(children)
+} catch {
+    print("Error: \(error)")
 }
 ```
+
 **Note:** The API returns only the direct children of the page. If there is content nested in the block (nested lists for example) it requires other calls. 
 
 ### Create a page
@@ -216,8 +242,11 @@ let request = PageCreateRequest(
     ]
 )
 
-notion.pageCreate(request: request) {
-    print($0)
+do {
+    let page = try await notion.pageCreate(request: request)
+    print(page)
+} catch {
+    print("Error creating page: \(error)")
 }
 ```
 
@@ -237,8 +266,11 @@ let request = PageUpdateRequest(
     ]
 )
 
-notion.pageUpdate(pageId: pageId, request: request) {
-    print($0)
+do {
+    let page = try await notion.pageUpdate(pageId: pageId, request: request)
+    print(page)
+} catch {
+    print("Error updating page: \(error)")
 }
 ```
 
@@ -250,8 +282,11 @@ let pageId = Page.Identifier("{PAGE UUIDv4}")
 // Archive page (trash a page)
 let request = PageUpdateRequest(archived: true)
 
-notion.pageUpdate(pageId: pageId, request: request) {
-    print($0)
+do {
+    let page = try await notion.pageUpdate(pageId: pageId, request: request)
+    print(page)
+} catch {
+    print("Error deleting page: \(error)")
 }
 ```
 
@@ -260,13 +295,14 @@ notion.pageUpdate(pageId: pageId, request: request) {
 Note: This endpoint returns only the first level of children, so for example, nested list items won't be returned. In that case, you need to make another request with the block id of the parent block.
 
 ```swift
-
 let pageId = Block.Identifier("{PAGE UUIDv4}")
 
-notion.blockChildren(blockId: pageId) {
-    print($0)
+do {
+    let children = try await notion.blockChildren(blockId: pageId)
+    print(children)
+} catch {
+    print("Error retrieving block children: \(error)")
 }
-
 ```
 
 ### Append block children
@@ -311,8 +347,12 @@ let blocks: [WriteBlock] = [
         ]
     )
 ]
-notion.blockAppend(blockId: pageId, children: blocks) {
-    print($0)
+
+do {
+    let result = try await notion.blockAppend(blockId: pageId, children: blocks)
+    print(result)
+} catch {
+    print("Error appending blocks: \(error)")
 }
 ```
 
@@ -325,8 +365,12 @@ let text: [RichText] = [
     .init(string: Date().description, annotations: .bold)
 ]
 let block = UpdateBlock(type: .paragraph(text: text))
-notion.blockUpdate(blockId: blockId, value: block) {
-    print("Updated: ", $0)
+
+do {
+    let updatedBlock = try await notion.blockUpdate(blockId: blockId, value: block)
+    print("Updated: \(updatedBlock)")
+} catch {
+    print("Error updating block: \(error)")
 }
 ```
 
@@ -335,8 +379,11 @@ notion.blockUpdate(blockId: blockId, value: block) {
 ```swift
 let blockId = Block.Identifier("{BLOCK UUIDv4}")
 
-notion.blockDelete(blockId: block.id) {
-    print("Delete: ", $0)
+do {
+    let deletedBlock = try await notion.blockDelete(blockId: blockId)
+    print("Deleted: \(deletedBlock)")
+} catch {
+    print("Error deleting block: \(error)")
 }
 ```
 
@@ -344,64 +391,164 @@ notion.blockDelete(blockId: block.id) {
 
 ```swift
 let id = User.Identifier("{USER UUIDv4}")
-notion.user(userId: id) {
-    print($0)
+
+do {
+    let user = try await notion.user(userId: id)
+    print(user)
+} catch {
+    print("Error retrieving user: \(error)")
 }
 ```
 
 ### List all users
+
 ```swift
-notion.usersList() {
-    print($0)
+do {
+    let users = try await notion.usersList()
+    print(users)
+} catch {
+    print("Error listing users: \(error)")
 }
 ```
 
 ### Search
 
 Search for pages & databases with a title containing text "Lorem"
+
 ```swift
-notion.search(
-    request: .init(
-        query: "Lorem"
+do {
+    let searchResult = try await notion.search(
+        request: .init(
+            query: "Lorem"
+        )
     )
-) {
-    print($0)
+    print(searchResult)
+} catch {
+    print("Error searching: \(error)")
 }
 ```
 
 Search for all databases and ignore pages.
+
 ```swift
-notion.search(
-    request: .init(
-        filter: .database
+do {
+    let searchResult = try await notion.search(
+        request: .init(
+            filter: .database
+        )
     )
-) {
-    print($0)
+    print(searchResult)
+} catch {
+    print("Error searching databases: \(error)")
 }
 ```
 
 Get all pages & databases
+
 ```swift
-notion.search() {
-    print($0)
+do {
+    let searchResult = try await notion.search()
+    print(searchResult)
+} catch {
+    print("Error searching: \(error)")
+}
+```
+
+### Error Handling
+
+With async/await, error handling is more straightforward using do-catch blocks:
+
+```swift
+do {
+    let page = try await notion.page(pageId: pageId)
+    // Success - use page
+} catch NotionClientError.httpError(let statusCode) {
+    print("HTTP Error: \(statusCode)")
+} catch NotionClientError.decodingError(let decodingError) {
+    print("Decoding Error: \(decodingError)")
+} catch {
+    print("Other Error: \(error)")
+}
+```
+
+### Using with async/await in SwiftUI
+
+```swift
+struct ContentView: View {
+    @State private var pages: [Page] = []
+    
+    var body: some View {
+        List(pages, id: \.id) { page in
+            Text(page.properties["title"]?.title?.first?.plainText ?? "No title")
+        }
+        .task {
+            await loadPages()
+        }
+    }
+    
+    private func loadPages() async {
+        let notion = NotionClient(accessKeyProvider: StringAccessKeyProvider(accessKey: "{NOTION_TOKEN}"))
+        let databaseId = Database.Identifier("{DATABASE UUIDv4}")
+        
+        do {
+            let result = try await notion.databaseQuery(databaseId: databaseId)
+            pages = result.results
+        } catch {
+            print("Error loading pages: \(error)")
+        }
+    }
 }
 ```
 
 ### Logging and debugging
 
-`NotionSwift` provide an internal rudimental logging system to track HTTP traffic. 
-To enable it you need to set a build-in or custom logger handler and decide about log level (`.info` by default).
-With `.track` log level you can see all content of a request. This is useful to track mapping issues between library data models and API.
-
+`NotionSwift` provides an internal rudimentary logging system to track HTTP traffic. 
+To enable it you need to set a built-in or custom logger handler and decide about log level (`.info` by default).
+With `.trace` log level you can see all content of a request. This is useful to track mapping issues between library data models and API.
 
 Example logging configuration:
+
 ```swift
 // This code should be in the ApplicationDelegate
 
 NotionSwiftEnvironment.logHandler = NotionSwift.PrintLogHandler() // uses print command
 NotionSwiftEnvironment.logLevel = .trace // show me everything
-
 ```
+
+## Migration from Callback-based API
+
+If you're migrating from the previous callback-based version:
+
+**Old (Callback-based):**
+```swift
+notion.page(pageId: pageId) { result in
+    switch result {
+    case .success(let page):
+        print(page)
+    case .failure(let error):
+        print(error)
+    }
+}
+```
+
+**New (async/await):**
+```swift
+do {
+    let page = try await notion.page(pageId: pageId)
+    print(page)
+} catch {
+    print(error)
+}
+```
+
+## Swift 6 Concurrency Features
+
+This library now fully supports Swift 6's strict concurrency checking:
+
+- All public types conform to `Sendable` where appropriate
+- Network operations use structured concurrency
+- Thread-safe access to shared resources
+- No data races or concurrency warnings
 
 ## License
 
